@@ -1,0 +1,57 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<header class="hero-unit" id="banner">
+  <div class="container">
+    <h1>Hello {{userInfos.Name}}!</h1>
+  </div>
+</header>
+
+<div class="container" style="margin-top:10px;">
+  <div class="row">
+    <div class="col-sm-12">
+      <p>Change your name  : <input type="text" ng-model="userInfos.Name"> <a ng-click="ChangeName()">Change</a>
+      </div>
+
+    </div>
+    <div class="row">
+      <div class="col-sm-3">
+        <ul>
+          <li ng-repeat="user in users">
+            {{user.Name}}
+            <a ng-click="StartConversation(user.Id)"> Start Conversation</a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-sm-9">
+        <tabset>
+          <tab ng-repeat="conv in conversations" active="conv.Active">
+          <tab-heading>
+          <a href="#" ng-click="LeaveConversation(conv.Id)"><i class="glyphicon glyphicon-remove"></i></a> {{conv.RoomName}}
+          </tab-heading>
+            <div class="row">
+              <div class="col-sm-4">
+                Participants : 
+                <ul>
+                  <li ng-repeat="user in conv.Participants">{{user.Name}}</li>
+                </ul>
+              </div>
+              <div class="col-sm-8">
+                <pre>
+                  {{conv.content}}
+                </pre>
+                <form ng-submit="SendMessageToConversation()">
+                  <input type="text" ng-model="conv.messageToSend"> {{messageToSend}}
+                </form>
+              </div>
+            </div>
+          </tab>
+        </tabset>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Raphael ATALLAH - October 2014</p>
+    </div>
+  </footer>
