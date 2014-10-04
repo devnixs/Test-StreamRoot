@@ -5,7 +5,8 @@ angular.module('testStreamrootApp', [
   'ngResource',
   'ngSanitize',
   'ngRoute',
-  'ui.bootstrap'
+  'ui.bootstrap',
+  'angularFileUpload'
 ])
   .config(function ($routeProvider, $locationProvider) {
     $routeProvider
@@ -16,7 +17,7 @@ angular.module('testStreamrootApp', [
     $locationProvider.html5Mode(true);
   })
   .factory('socket', function ($rootScope) {
-  var socket = io.connect();
+  var socket = window.io.connect();
   return {
     on: function (eventName, callback) {
       socket.on(eventName, function () {  

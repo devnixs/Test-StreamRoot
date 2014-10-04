@@ -16,146 +16,17 @@ require('./config/express')(app);
 require('./routes')(app);
 var io = require('socket.io')(server);
 
+
+var ConversationManager = require('./components/ConversationManager.js')(io);
+var UserManager = require('./components/UserManager.js');
+
 //We want to keep a track of connected clients by Id
 var clients = {};
-
-//Model used to store the user informations
-var UserInfo = function(id, socketId){
-	this.Id =id;
-	this.Name = 'Guest'+id;
-	this.SocketId = socketId;
-	this.GetSocket = function(){
-		return clients[this.SocketId];
-	}
-	this.Serialize = function (){
-		return {
-			Id : this.Id,
-			Name : this.Name
-		};
-	};
-};
-
-var UserManager = {
-	TokenNumber:1,
-	ConnectedUsers : [],
-	AddUser : function(user){
-		this.ConnectedUsers.push(user);
-	},
-	RemoveUser : function(user){
-		//And remove the one from the list
-		this.ConnectedUsers.splice(this.ConnectedUsers.indexOf(user), 1);
-	},
-	CreateUser : function(socketId){
-		var user = new UserInfo(this.TokenNumber++,socketId);
-		return user;
-	},
-	GetUserById : function(id){
-		for (var i = 0; i < this.ConnectedUsers.length; i++) {
-			if(this.ConnectedUsers[i].Id===id)
-				return this.ConnectedUsers[i];
-		}
-		return undefined;
-	}
-};
-
-var Conversation = function(id){
-	this.Id = id;
-	this.RoomName = 'Room ' + id;
-	this.DisplayName = this.RoomName;
-	this.Participants = [];
-	this.AdminId = 0;
-	this.RemoveParticipant = function(UserId){
-		for (var i = 0; i < this.Participants.length; i++) {
-			if(this.Participants[i].Id===UserId){
-				console.log('Removed '+ UserId +' from the conversation ' + this.RoomName);
-				this.Participants.splice(i,1);
-				break;
-			}
-		}
-	}
-};
-
-var ConversationManager = {
-	TokenNumber : 1,
-	Conversations :[],
-	CreateConversation : function(User1,User2){
-		var conversation = new Conversation(this.TokenNumber++);
-		conversation.AdminId = User1.Id;
-		this.JoinConversation(User1,conversation);
-		this.JoinConversation(User2,conversation);
-		this.Conversations.push(conversation);
-		return conversation;
-	},
-	GetConversationById : function(Id){
-		for (var i = 0; i < this.Conversations.length; i++) {
-			if(this.Conversations[i].Id === Id){
-				return this.Conversations[i];
-			}
-		}
-		return undefined;
-	},
-	JoinConversation : function(user,conversation){
-		conversation.Participants.push(user);
-		console.log(user.Name + ' joined room '+ conversation.RoomName);
-		io.to(conversation.RoomName).emit("conversation:userjoined",
-		{
-			User:user.Serialize(),
-			ConversationId : conversation.Id
-		});
-		user.GetSocket().join(conversation.RoomName);
-	},
-	LeaveConversationById : function(user,conversationId){
-		for (var i = 0; i < this.Conversations.length; i++) {
-			if(this.Conversations[i].Id === conversationId){
-				this.LeaveConversation(user,this.Conversations[i])
-			}
-		}
-	},
-	LeaveConversation : function(user,conversation){
-			console.log(user.Name + ' leaved room '+ conversation.RoomName);
-			user.GetSocket().leave(conversation.RoomName);
-			user.GetSocket().emit('conversation:left',conversation.Id);
-			conversation.RemoveParticipant(user.Id);
-
-			if(conversation.Participants.length>0){
-				io.to(conversation.RoomName).emit("conversation:userleft",
-					{
-						User:user.Serialize(),
-						ConversationId:conversation.Id
-					});
-
-				//If the admin leaves, someone is designed to be the new admin
-				if(conversation.AdminId === user.Id)
-				{
-					conversation.AdminId = conversation.Participants[0].Id;
-					io.to(conversation.RoomName).emit("conversation:adminchanges",conversation);
-				}
-			}
-
-	},
-	LeaveAllConversations : function(user){
-		for (var i = 0; i < this.Conversations.length; i++) {
-			this.LeaveConversation(user,this.Conversations[i]);	
-		}
-	},
-	SendMessageToConversation : function(User, ConversationId, Message){
-		for (var i = 0; i < this.Conversations.length; i++) {
-			if(this.Conversations[i].Id === ConversationId){
-				User.socket.to(this.Conversations[i].RoomName).emit('user:messagesent',{
-					RoomId : this.Conversations[i].Id,
-					Message : Message,
-					From : User.Serialize()
-				});
-				break;
-			}
-		}
-	}
-};
 
 
 io.on('connection', function(socket){ 
 		clients[socket.id] = socket;
-		var user = UserManager.CreateUser(socket.id);
+		var user = UserManager.CreateUser(socket.id,clients);
 		console.log(user.Name + " connected");
 
 		socket.broadcast.emit('user:connected', user.Serialize());
@@ -196,6 +67,7 @@ io.on('connection', function(socket){
 		    socket.emit('conversation:started', {
 				Conversation : conversation
 		    });
+
 
 		    otherUser.GetSocket().emit('conversation:started', {
 				Conversation : conversation

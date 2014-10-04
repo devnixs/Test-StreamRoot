@@ -14,6 +14,8 @@ var cookieParser = require('cookie-parser');
 var errorHandler = require('errorhandler');
 var path = require('path');
 var config = require('./environment');
+var multipart = require('connect-multiparty');
+
 
 module.exports = function(app) {
   var env = app.get('env');
@@ -26,6 +28,9 @@ module.exports = function(app) {
   app.use(bodyParser.json());
   app.use(methodOverride());
   app.use(cookieParser());
+  app.use(multipart({
+      uploadDir: config.tmp
+  }));
   
   if ('production' === env) {
     app.use(favicon(path.join(config.root, 'public', 'favicon.ico')));

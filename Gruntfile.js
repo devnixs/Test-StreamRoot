@@ -407,7 +407,7 @@ module.exports = function (grunt) {
         }
       },
       dist: [
-        'imagemin',
+        //'imagemin',
         'svgmin'
       ]
     },
@@ -562,8 +562,7 @@ module.exports = function (grunt) {
         'env:all',
         'concurrent:test',
         'injector',
-        'autoprefixer',
-        'karma'
+        'autoprefixer'
       ]);
     }
 
