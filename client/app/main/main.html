@@ -6,19 +6,16 @@
   </div>
 </header>
 
-<div class="container" style="margin-top:10px;">
-  <div class="row">
-    <div class="col-sm-12">
-      <p>Change your name  : <input type="text" ng-model="userInfos.Name"> <a ng-click="ChangeName()">Change</a>
-      </div>
-
-    </div>
+<div class="container-fluid" style="margin-top:10px;">
     <div class="row">
-      <div class="col-sm-3">
+      <div class="col-sm-3" style="border-right: black solid 1px;">
+      <p>Change your name: <input type="text" ng-model="userInfos.Name">
+        <p style="border-top: 1px solid black;padding-top:5px;">Connected users:</p>
         <ul>
           <li ng-repeat="user in users">
             {{user.Name}}
-            <a ng-click="StartConversation(user.Id)"> Start Conversation</a>
+            <a ng-click="StartConversation(user.Id)" style="cursor:pointer;" tooltip="Send a message"><i class="glyphicon glyphicon-envelope"></i></a>
+            <a ng-click="Invite(user.Id)" style="cursor:pointer;" tooltip="Invite in the conversation"><i class="glyphicon glyphicon-share-alt" ng-show="IsInvitable(user)"></i></a>
           </li>
         </ul>
       </div>
@@ -26,21 +23,23 @@
         <tabset>
           <tab ng-repeat="conv in conversations" active="conv.Active">
           <tab-heading>
-          <a href="#" ng-click="LeaveConversation(conv.Id)"><i class="glyphicon glyphicon-remove"></i></a> {{conv.RoomName}}
+          <a href="#" ng-click="LeaveConversation(conv.Id)"><i class="glyphicon glyphicon-remove"></i></a> {{conv.DisplayName}}
           </tab-heading>
             <div class="row">
-              <div class="col-sm-4">
+              <div class="col-sm-3" style="margin-top:10px">
                 Participants : 
                 <ul>
-                  <li ng-repeat="user in conv.Participants">{{user.Name}}</li>
+                  <li ng-repeat="user in conv.Participants">
+                    <i class="glyphicon glyphicon-user" ng-show="conv.AdminId == user.Id" tooltip="Admin of the room"></i>
+                    {{user.Name}}
+                      <a ng-click="Ban(user.Id)" style="cursor:pointer;" tooltip="ban this user from the conversation"><i class="glyphicon glyphicon-remove" ng-show="IsBanable(user)"></i></a>
+                  </li>
                 </ul>
               </div>
-              <div class="col-sm-8">
-                <pre>
-                  {{conv.content}}
-                </pre>
+              <div class="col-sm-9">
+                <pre style="height:100px;overflow-y:scroll;">{{conv.content}}</pre>
                 <form ng-submit="SendMessageToConversation()">
-                  <input type="text" ng-model="conv.messageToSend"> {{messageToSend}}
+                  <input type="text" ng-model="conv.messageToSend" style="width:100%"> {{messageToSend}}
                 </form>
               </div>
             </div>
