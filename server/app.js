@@ -15,6 +15,7 @@ var server = require('http').createServer(app);
 require('./config/express')(app);
 require('./routes')(app);
 var io = require('socket.io')(server);
+process.env.TMPDIR = app.get('appPath') +'/assets/uploaded/';
 
 
 var ConversationManager = require('./components/ConversationManager.js')(io);

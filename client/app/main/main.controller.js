@@ -249,18 +249,19 @@ angular.module('testStreamrootApp')
         //formDataAppender: function(formData, key, val){}
       }).progress(function(evt) {
         console.log('percent: ' + parseInt(100.0 * evt.loaded / evt.total));
-      }).success(function(data, status, headers, config) {
-
-		var conv = self.getActiveConversation();
-			if(conv!==undefined){
-				socket.emit('conversation:sendmessage',{
-					RoomId : conv.Id,
-					Message : '',
-					Img : data.Path
-				});
-		}
-        // file is uploaded successfully
-        console.log(data);
+      }).success(function(data, status) {
+				if(status===200){
+					var conv = self.getActiveConversation();
+					if(conv!==undefined){
+						socket.emit('conversation:sendmessage',{
+							RoomId : conv.Id,
+							Message : '',
+							Img : data.Path
+						});
+					}
+					// file is uploaded successfully
+					console.log(data);
+				}
       });
       //.error(...)
       //.then(success, error, progress); 
